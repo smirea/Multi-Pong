@@ -18,7 +18,7 @@ Stage.prototype = {
   _grid: {
     x: 25,
     y: 25,
-    emphasize: 100,
+    emphasize: false,
     labels: true,
     style: {
       fillStyle: '#666',
@@ -506,40 +506,48 @@ Ray.prototype = {
   get_intersections: function (ray, stage) {
     var intersections = [];
 
+    var origin = new Point2D(ray.x, ray.y);
     for (var key in stage.sprites) {
       var elem = stage.sprites[key];
       if (!(elem instanceof Rectangle || elem instanceof Polygon || elem instanceof Circle)) {
         continue;
       }
+
+      var insc;
       if (elem.intersect) {
-        intersections.push({
-          line: elem,
-          intersection: elem.intersectRay(ray)
-        });
-        continue;
-      }
-      intersections.push({
-        line: elem,
-        intersection: Intersection.intersectLineLine(
+        insc = elem.intersectRay(ray);
+      } else {
+        insc = Intersection.intersectLineLine(
           ray.points[0], ray.points[1],
           elem.points[0], elem.points[1]
-        )
-      });
+        );
+      }
+
+      for (var i=0; i<insc.points.length; ++i) {
+        if (float_equal(ray.x, insc.points[i].x) && float_equal(ray.y, insc.points[i].y)) {
+          continue;
+        }
+        intersections.push({
+          line: elem,
+          status: insc.status,
+          origin: insc.points[i],
+          distance: origin.distanceFrom(insc.points[i]),
+        });
+      }
     }
 
-    intersections = intersections.filter(function (data) {
-      return  data.intersection.status == 'Intersection' &&
-              !(float_equal(ray.x, data.intersection.points[0].x) &&
-                float_equal(ray.y, data.intersection.points[0].y));
-    });
+    // intersections = intersections.filter(function (data) {
+    //   return  data.intersection.status == 'Intersection' &&
+    //           !(float_equal(ray.x, data.intersection.points[0].x) &&
+    //             float_equal(ray.y, data.intersection.points[0].y));
+    // });
 
     intersections.sort(function (a, b) {
-      a = a.intersection.points[0];
-      b = b.intersection.points[0];
-      return float_equal(a.x, b.x) && float_equal(a.y, b.y) ? 0 :
-        !float_equal(a.y, b.y) ?
-          (ray.dy > 0 ? a.y > b.y : a.y < b.y) :
-          (ray.dx > 0 ? a.x > b.x : a.x < b.x);
+      return a.distance == b.distance ? 0 : a.distance > b.distance;
+      // return float_equal(a.x, b.x) && float_equal(a.y, b.y) ? 0 :
+      //   !float_equal(a.y, b.y) ?
+      //     (ray.dy > 0 ? a.y > b.y : a.y < b.y) :
+      //     (ray.dx > 0 ? a.x > b.x : a.x < b.x);
     });
 
     // console.log(intersections.map(function(i){ return JSON.stringify(i.intersection.points[0].toObject(), null, 2); }).join("\n"));
@@ -591,7 +599,7 @@ Ray.prototype = {
         break;
       }
       var data = intersections[0];
-      var p = data.intersection.points[0];
+      var p = data.origin;
       var refl_angle = 2 * data.line.angle - ray.angle;
 
       this.draw_normal(stage, {x:p.x, y:p.y, angle:data.line.normal_angle});

@@ -32,9 +32,9 @@ window.onload = function onload () {
     add(new Rectangle({x:w-o1, y:o1, w:h-2*o1, angle:Math.PI * 1/2})).
     add(new Rectangle({x:w-o1, y:h-o1, w:w-2*o1, angle:Math.PI * 2/2})).
     add(new Rectangle({x:400, y:100, w:150, angle:Math.PI * 5/8})).
-    add('ball', new Ball({x:150, y:150})).
+    add('ball', new Ball({x:550, y:350, radius:80, style:{fillStyle:'pink'}})).
     // add(new Polygon({x:300, y:300, radius:150, edges:6, style:{fillStyle:'cyan', lineWidth:10}})).
-    add('ray', new Ray({x:300, y:250, angle:Math.PI * 3/8, style:{strokeStyle:'crimson'} })).
+    add('ray', new Ray({x:250, y:350, angle:Math.PI * 11/8, style:{strokeStyle:'crimson'} })).
     draw();
 
   var fps_value = 60;
